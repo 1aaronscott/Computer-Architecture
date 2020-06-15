@@ -2,12 +2,28 @@
 
 import sys
 
+
 class CPU:
     """Main CPU class."""
+    commands = {"HLT": 0b00000001,  # 1
+                "LDI": 0b10000010,  # 130
+                "PRN": 0b01000111}  # 71
 
     def __init__(self):
         """Construct a new CPU."""
-        pass
+        self.R0 = [0]*8
+        self.R1 = [0]*8
+        self.R2 = [0]*8
+        self.R3 = [0]*8
+        self.R4 = [0]*8
+        self.R5 = [0]*8  # reserved as the interrupt mask (IM)
+        self.R6 = [0]*8  # reserved as the interrupt status (IS)
+        self.R7 = [0]*8  # reserved as the stack pointer (SP)
+        self.ram = [0]*256
+        self.fl = [0]*8  # Flags
+        # Program Counter, address of the currently executing instruction
+        self.pc = 0
+        self.reg = [0]*8
 
     def load(self):
         """Load a program into memory."""
@@ -18,25 +34,24 @@ class CPU:
 
         program = [
             # From print8.ls8
-            0b10000010, # LDI R0,8
+            0b10000010,  # LDI R0,8
             0b00000000,
             0b00001000,
-            0b01000111, # PRN R0
+            0b01000111,  # PRN R0
             0b00000000,
-            0b00000001, # HLT
+            0b00000001,  # HLT
         ]
 
         for instruction in program:
             self.ram[address] = instruction
             address += 1
 
-
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
 
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
-        #elif op == "SUB": etc
+        # elif op == "SUB": etc
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -48,8 +63,8 @@ class CPU:
 
         print(f"TRACE: %02X | %02X %02X %02X |" % (
             self.pc,
-            #self.fl,
-            #self.ie,
+            # self.fl,
+            # self.ie,
             self.ram_read(self.pc),
             self.ram_read(self.pc + 1),
             self.ram_read(self.pc + 2)
@@ -60,6 +75,55 @@ class CPU:
 
         print()
 
+    def ram_read(self, MAR):
+        ''' accept the address to read and return the value stored there
+        input: Memory Address Register (MAR)
+        output: Memory Data Register (MDR)'''
+        try:
+            return self.ram[MAR]
+        except IndexError:
+            raise ValueError(f"The address {MAR} isn't valid.")
+
+    def ram_write(self, MAR, MDR):
+        ''' accept a value to write, and the address to write it to
+        input: Memory Address Register (MAR)
+               Memory Data Register (MDR) '''
+        try:
+            self.ram[MAR] = MDR
+        except IndexError:
+            raise ValueError(f"The address {MAR} isn't valid.")
+
     def run(self):
         """Run the CPU."""
-        pass
+        running = True
+        # ir = self.ram[self.pc]
+        # print(ir)
+        while running:
+            ir = self.ram_read(self.pc)
+#            print(ir)
+            # command = self.ram_read(self.pc)
+            # print(bin(command))
+            # operand_A = self.ram_read(self.pc + 1)
+            # operand_B = self.ram_read(self.pc + 2)
+            # print("ir is ", ir)
+            # print(self.commands["HLT"])
+            # print(self.commands["LDI"])
+            # print(self.commands["PRN"])
+            # print(self.ram[self.commands["HLT"]])
+            # print(self.ram[self.commands["LDI"]])
+            # print(self.ram[self.commands["PRN"]])
+            # print(self.R0[self.commands["HLT"]])
+            # print(self.R0[self.commands["LDI"]])
+            # print(self.R0[self.commands["PRN"]])
+            if ir == self.commands["HLT"]:
+                running = False
+                self.pc += 1
+            elif ir == self.commands["LDI"]:
+                self.R0[self.ram[self.pc+1]] = self.ram[self.pc+2]
+                self.pc += 3
+            elif ir == self.commands["PRN"]:
+                print(self.R0[self.ram[self.pc+1]])
+                self.pc += 2
+            else:
+                print(f'Unknown instruction {ir} at address {self.pc}')
+                sys.exit(1)
