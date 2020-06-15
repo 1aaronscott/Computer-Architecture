@@ -75,7 +75,7 @@ but you'll have to implement those three above instructions first!
      		
 * Write a short 3-10-word description of what each file does.
 * Note what has been implemented, and what hasn't.
-       * needs implementation:
+    * needs implementation:
        	       - cpu constructor __init__()
 	       - HLT, LDI, PRN
 	       - load() method
