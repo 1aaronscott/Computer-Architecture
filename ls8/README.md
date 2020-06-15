@@ -60,19 +60,19 @@ but you'll have to implement those three above instructions first!
 ## Step 0: IMPORTANT: inventory what is here!
 
 * Make a list of files here.
-       * LS8-cheatsheet.md
+   * LS8-cheatsheet.md
 		- lists opcodes and their binary equivalents
-       * FAQ.md
+   * FAQ.md
 		- random questions with answers surrounding computer architecture concepts
-       * LS8-spec.md
+   * LS8-spec.md
 		- various details about opcodes, registers, memory, interrupts...
-       * ls8 (Project: The LS-8 Emulator)
+   * ls8 (Project: The LS-8 Emulator)
 		* ls8.py
 			- instantiates a cpu object from cpu.py
 			- executes the load and run methods
 		* cpu.py
 			- defines a cpu class
-		
+     		
 * Write a short 3-10-word description of what each file does.
 * Note what has been implemented, and what hasn't.
        * needs implementation:
