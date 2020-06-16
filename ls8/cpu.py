@@ -153,8 +153,16 @@ class CPU:
 
     def call_function(self, function):
         ''' branch table call functionality '''
-        if self.branch_table[function] is not None:
+        try:
             self.branch_table[function]()
+        except KeyError:
+            print(f"This operation ({function}) not yet implemented!")
+            exit(1)
+        # if self.branch_table[function] is not None:
+        #     self.branch_table[function]()
+        # else:
+        #     print("This operation not yet implemented!")
+        #     exit(1)
 
     def run(self):
         """Run the CPU."""
