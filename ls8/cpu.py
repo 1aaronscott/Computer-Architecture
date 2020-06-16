@@ -25,10 +25,11 @@ class CPU:
         # Program Counter, address of the currently executing instruction
         self.pc = 0
         self.register = [0]*8  # 8-bit register
-        self.branch_table = {"HTL": self.hlt,
-                             "LDI": self.ldi,
-                             "PRN": self.prn,
-                             "MUL": self.mul}
+        self.branch_table = {self.opcodes["HLT"]: self.hlt,
+                             self.opcodes["LDI"]: self.ldi,
+                             self.opcodes["PRN"]: self.prn,
+                             self.opcodes["MUL"]: self.mul}
+        self.running = True
 
     def load(self):
         """Load a program into memory."""
@@ -131,55 +132,66 @@ class CPU:
             raise ValueError(f"The address {MAR} isn't valid.")
 
     def hlt(self):
-        pass
+        self.running = False
 
     def ldi(self):
-        pass
+        self.register[self.ram[self.pc+1]] = self.ram[self.pc+2]
+        self.pc += 3
 
     def prn(self):
-        pass
+        print(self.register[self.ram[self.pc+1]])
+        self.pc += 2
 
     def mul(self):
-        pass
+        self.register[self.ram[self.pc+1]] = self.register[self.ram[self.pc+2]
+                                                           ]*self.register[self.ram[self.pc+1]]
+        self.pc += 3
+
+    def call_function(self, function):
+        if self.branch_table[function] is not None:
+            self.branch_table[function]()
 
     def run(self):
         """Run the CPU."""
-        running = True
-        # ir = self.ram[self.pc]
-        # print(ir)
-        while running:
+        while self.running:
             ir = self.ram_read(self.pc)
-            # print(ir)
-            # command = self.ram_read(self.pc)
-            # print(bin(command))
-            # operand_A = self.ram_read(self.pc + 1)
-            # operand_B = self.ram_read(self.pc + 2)
-            # print("ir is ", ir)
-            # print(self.commands["HLT"])
-            # print(self.commands["LDI"])
-            # print(self.commands["PRN"])
-            # print(self.ram[self.commands["HLT"]])
-            # print(self.ram[self.commands["LDI"]])
-            # print(self.ram[self.commands["PRN"]])
-            # print(self.R0[self.commands["HLT"]])
-            # print(self.R0[self.commands["LDI"]])
-            # print(self.R0[self.commands["PRN"]])
-            if ir == self.opcodes["HLT"]:
-                running = False
-                self.pc += 1
-            elif ir == self.opcodes["LDI"]:
-                self.register[self.ram[self.pc+1]] = self.ram[self.pc+2]
-                self.pc += 3
-            elif ir == self.opcodes["PRN"]:
-                print(self.register[self.ram[self.pc+1]])
-                self.pc += 2
-            elif ir == self.opcodes["MUL"]:
-                self.register[self.ram[self.pc+1]
-                              ] = self.register[self.ram[self.pc+2]]*self.register[self.ram[self.pc+1]]
-                self.pc += 3
-            else:
-                print(f'Unknown instruction {ir} at address {self.pc}')
-                sys.exit(1)
+            self.call_function(ir)
+        # running = True
+        # # ir = self.ram[self.pc]
+        # # print(ir)
+        # while running:
+        #     ir = self.ram_read(self.pc)
+        #     # print(ir)
+        #     # command = self.ram_read(self.pc)
+        #     # print(bin(command))
+        #     # operand_A = self.ram_read(self.pc + 1)
+        #     # operand_B = self.ram_read(self.pc + 2)
+        #     # print("ir is ", ir)
+        #     # print(self.commands["HLT"])
+        #     # print(self.commands["LDI"])
+        #     # print(self.commands["PRN"])
+        #     # print(self.ram[self.commands["HLT"]])
+        #     # print(self.ram[self.commands["LDI"]])
+        #     # print(self.ram[self.commands["PRN"]])
+        #     # print(self.R0[self.commands["HLT"]])
+        #     # print(self.R0[self.commands["LDI"]])
+        #     # print(self.R0[self.commands["PRN"]])
+        #     if ir == self.opcodes["HLT"]:
+        #         running = False
+        #         self.pc += 1
+        #     elif ir == self.opcodes["LDI"]:
+        #         self.register[self.ram[self.pc+1]] = self.ram[self.pc+2]
+        #         self.pc += 3
+        #     elif ir == self.opcodes["PRN"]:
+        #         print(self.register[self.ram[self.pc+1]])
+        #         self.pc += 2
+        #     elif ir == self.opcodes["MUL"]:
+        #         self.register[self.ram[self.pc+1]
+        #                       ] = self.register[self.ram[self.pc+2]]*self.register[self.ram[self.pc+1]]
+        #         self.pc += 3
+        #     else:
+        #         print(f'Unknown instruction {ir} at address {self.pc}')
+        #         sys.exit(1)
 
 # if __name__ == "__main__":
 #     filename = sys.argv[1]
