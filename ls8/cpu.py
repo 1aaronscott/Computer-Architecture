@@ -7,7 +7,8 @@ class CPU:
     """Main CPU class."""
     opcodes = {"HLT": 0b00000001,  # 1
                "LDI": 0b10000010,  # 130
-               "PRN": 0b01000111}  # 71
+               "PRN": 0b01000111,  # 71
+               "MUL": 0b10100010, }  # 162
 
     def __init__(self):
         """Construct a new CPU."""
@@ -46,16 +47,27 @@ class CPU:
         #     self.ram[address] = instruction
         #     address += 1
 
-        filename = sys.argv[1]
-
-        with open(filename) as f:
-            for address, line in enumerate(f):
-                line = line.split("#")
-                try:
+        try:
+            filename = sys.argv[1]
+            with open(filename) as f:
+                for address, line in enumerate(f):
+                    line = line.split("#")
                     v = int(line[0], 2)
-                except ValueError:
-                    continue
-                self.ram[address] = v
+                    self.ram[address] = v
+        except (IndexError, FileNotFoundError):
+            print("Please provide a valid filename!")
+            exit(1)
+
+        # with open(filename) as f:
+        #     for address, line in enumerate(f):
+        #         line = line.split("#")
+        #         try:
+        #             v = int(line[0], 2)
+        #         except FileNotFoundError:
+        #             print("Please provide a valid filename!")
+        #         except ValueError:
+        #             continue
+        #         self.ram[address] = v
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
@@ -111,7 +123,7 @@ class CPU:
         # print(ir)
         while running:
             ir = self.ram_read(self.pc)
-#            print(ir)
+            # print(ir)
             # command = self.ram_read(self.pc)
             # print(bin(command))
             # operand_A = self.ram_read(self.pc + 1)
@@ -135,6 +147,10 @@ class CPU:
             elif ir == self.opcodes["PRN"]:
                 print(self.register[self.ram[self.pc+1]])
                 self.pc += 2
+            elif ir == self.opcodes["MUL"]:
+                self.register[self.ram[self.pc+1]
+                              ] = self.register[self.ram[self.pc+2]]*self.register[self.ram[self.pc+1]]
+                self.pc += 3
             else:
                 print(f'Unknown instruction {ir} at address {self.pc}')
                 sys.exit(1)
