@@ -11,40 +11,51 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
-        self.R0 = [0]*8
-        self.R1 = [0]*8
-        self.R2 = [0]*8
-        self.R3 = [0]*8
-        self.R4 = [0]*8
-        self.R5 = [0]*8  # reserved as the interrupt mask (IM)
-        self.R6 = [0]*8  # reserved as the interrupt status (IS)
-        self.R7 = [0]*8  # reserved as the stack pointer (SP)
+        # self.R0 = [0]*8
+        # self.R1 = [0]*8
+        # self.R2 = [0]*8
+        # self.R3 = [0]*8
+        # self.R4 = [0]*8
+        # self.R5 = [0]*8  # reserved as the interrupt mask (IM)
+        # self.R6 = [0]*8  # reserved as the interrupt status (IS)
+        # self.R7 = [0]*8  # reserved as the stack pointer (SP)
         self.ram = [0]*256
         self.fl = [0]*8  # Flags
         # Program Counter, address of the currently executing instruction
         self.pc = 0
-        self.reg = [0]*8
+        self.register = [0]*8  # 8-bit register
 
     def load(self):
         """Load a program into memory."""
 
-        address = 0
+        # address = 0
 
-        # For now, we've just hardcoded a program:
+        # # For now, we've just hardcoded a program:
 
-        program = [
-            # From print8.ls8
-            0b10000010,  # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111,  # PRN R0
-            0b00000000,
-            0b00000001,  # HLT
-        ]
+        # program = [
+        #     # From print8.ls8
+        #     0b10000010,  # LDI R0,8
+        #     0b00000000,
+        #     0b00001000,
+        #     0b01000111,  # PRN R0
+        #     0b00000000,
+        #     0b00000001,  # HLT
+        # ]
 
-        for instruction in program:
-            self.ram[address] = instruction
-            address += 1
+        # for instruction in program:
+        #     self.ram[address] = instruction
+        #     address += 1
+
+        filename = sys.argv[1]
+
+        with open(filename) as f:
+            for address, line in enumerate(f):
+                line = line.split("#")
+                try:
+                    v = int(line[0], 2)
+                except ValueError:
+                    continue
+                self.ram[address] = v
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
@@ -119,11 +130,23 @@ class CPU:
                 running = False
                 self.pc += 1
             elif ir == self.opcodes["LDI"]:
-                self.R0[self.ram[self.pc+1]] = self.ram[self.pc+2]
+                self.register[self.ram[self.pc+1]] = self.ram[self.pc+2]
                 self.pc += 3
             elif ir == self.opcodes["PRN"]:
-                print(self.R0[self.ram[self.pc+1]])
+                print(self.register[self.ram[self.pc+1]])
                 self.pc += 2
             else:
                 print(f'Unknown instruction {ir} at address {self.pc}')
                 sys.exit(1)
+
+# if __name__ == "__main__":
+#     filename = sys.argv[1]
+
+#     with open(filename) as f:
+#         for address, line in enumerate(f):
+#             line = line.split("#")
+#             try:
+#                 v = int(line[0], 10)
+#             except ValueError:
+#                 continue
+#             memory[address] = v
