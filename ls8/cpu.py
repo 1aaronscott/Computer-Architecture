@@ -20,7 +20,7 @@ class CPU:
         # self.R5 = [0]*8  # reserved as the interrupt mask (IM)
         # self.R6 = [0]*8  # reserved as the interrupt status (IS)
         # self.R7 = [0]*8  # reserved as the stack pointer (SP)
-        self.ram = [0]*256
+        self.ram = [0]*256  # available system ram
         self.fl = [0]*8  # Flags
         # Program Counter, address of the currently executing instruction
         self.pc = 0
@@ -132,22 +132,27 @@ class CPU:
             raise ValueError(f"The address {MAR} isn't valid.")
 
     def hlt(self):
+        ''' system halt '''
         self.running = False
 
     def ldi(self):
+        ''' load a value into a register '''
         self.register[self.ram[self.pc+1]] = self.ram[self.pc+2]
         self.pc += 3
 
     def prn(self):
+        ''' print value of a register '''
         print(self.register[self.ram[self.pc+1]])
         self.pc += 2
 
     def mul(self):
+        ''' multiply to register values '''
         self.register[self.ram[self.pc+1]] = self.register[self.ram[self.pc+2]
                                                            ]*self.register[self.ram[self.pc+1]]
         self.pc += 3
 
     def call_function(self, function):
+        ''' branch table call functionality '''
         if self.branch_table[function] is not None:
             self.branch_table[function]()
 
@@ -157,8 +162,6 @@ class CPU:
             ir = self.ram_read(self.pc)
             self.call_function(ir)
         # running = True
-        # # ir = self.ram[self.pc]
-        # # print(ir)
         # while running:
         #     ir = self.ram_read(self.pc)
         #     # print(ir)
