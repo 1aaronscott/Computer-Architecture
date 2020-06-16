@@ -5,9 +5,9 @@ import sys
 
 class CPU:
     """Main CPU class."""
-    commands = {"HLT": 0b00000001,  # 1
-                "LDI": 0b10000010,  # 130
-                "PRN": 0b01000111}  # 71
+    opcodes = {"HLT": 0b00000001,  # 1
+               "LDI": 0b10000010,  # 130
+               "PRN": 0b01000111}  # 71
 
     def __init__(self):
         """Construct a new CPU."""
@@ -115,13 +115,13 @@ class CPU:
             # print(self.R0[self.commands["HLT"]])
             # print(self.R0[self.commands["LDI"]])
             # print(self.R0[self.commands["PRN"]])
-            if ir == self.commands["HLT"]:
+            if ir == self.opcodes["HLT"]:
                 running = False
                 self.pc += 1
-            elif ir == self.commands["LDI"]:
+            elif ir == self.opcodes["LDI"]:
                 self.R0[self.ram[self.pc+1]] = self.ram[self.pc+2]
                 self.pc += 3
-            elif ir == self.commands["PRN"]:
+            elif ir == self.opcodes["PRN"]:
                 print(self.R0[self.ram[self.pc+1]])
                 self.pc += 2
             else:
