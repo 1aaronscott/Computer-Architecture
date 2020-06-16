@@ -25,6 +25,10 @@ class CPU:
         # Program Counter, address of the currently executing instruction
         self.pc = 0
         self.register = [0]*8  # 8-bit register
+        self.branch_table = {"HTL": self.hlt,
+                             "LDI": self.ldi,
+                             "PRN": self.prn,
+                             "MUL": self.mul}
 
     def load(self):
         """Load a program into memory."""
@@ -46,20 +50,30 @@ class CPU:
         # for instruction in program:
         #     self.ram[address] = instruction
         #     address += 1
-
+        address = 0
         try:
             filename = sys.argv[1]
             with open(filename) as f:
-                for address, line in enumerate(f):
-                    line = line.split("#")
-                    v = int(line[0], 2)
-                    self.ram[address] = v
+                for line in f:
+                    # split lines into opcodes and other cruft
+                    line = line.split("#")[0].strip()
+                    #print(address, line)
+                    if line == "":  # if no opcode is present
+                        continue
+                    else:  # add opcode to memory
+                        v = int(line, 2)
+                        #print(address, v)
+                        self.ram[address] = v
+                        address += 1
+        # handle user not supplying correct data
         except (IndexError, FileNotFoundError):
             print("Please provide a valid filename!")
             exit(1)
 
+        # filename = sys.argv[1]
         # with open(filename) as f:
         #     for address, line in enumerate(f):
+        #         print(address, line)
         #         line = line.split("#")
         #         try:
         #             v = int(line[0], 2)
@@ -115,6 +129,18 @@ class CPU:
             self.ram[MAR] = MDR
         except IndexError:
             raise ValueError(f"The address {MAR} isn't valid.")
+
+    def hlt(self):
+        pass
+
+    def ldi(self):
+        pass
+
+    def prn(self):
+        pass
+
+    def mul(self):
+        pass
 
     def run(self):
         """Run the CPU."""
