@@ -23,7 +23,8 @@ class CPU:
                "OR": 0b10101010,  # 170
                "XOR": 0b10101011,  # 171
                "SHL": 0b10101100,  # 172
-               "SHR": 0b10101101, }  # 173
+               "SHR": 0b10101101,  # 173
+               "PRA": 0b01001000, }  # 72
 
     def __init__(self):
         """Construct a new CPU."""
@@ -59,7 +60,8 @@ class CPU:
                              self.opcodes["OR"]: self.ls8or,
                              self.opcodes["XOR"]: self.xor,
                              self.opcodes["SHL"]: self.shl,
-                             self.opcodes["SHR"]: self.shr, }
+                             self.opcodes["SHR"]: self.shr,
+                             self.opcodes["PRA"]: self.pra, }
 
         self.running = True
 
@@ -173,6 +175,21 @@ class CPU:
         print(self.register[self.ram[self.pc+1]])
 #        self.pc += (self.ram[self.pc] & 0b11000000 >> 6) + 1
         self.pc += 2
+
+    def pra(self):
+        ''' print ascii value of a register '''
+        print(ascii(self.register[self.ram[self.pc+1]]))
+        self.pc += 2
+
+    def ld(self):
+        '''LD registerA registerB
+        Loads registerA with the value at the memory address stored in registerB. '''
+        self.register[self.ram[self.pc+1]] = self.register[self.ram[self.pc+2]]
+
+    def st(self):
+        ''' ST registerA registerB
+        Store value in registerB in the address stored in registerA. '''
+        self.register[self.ram[self.pc+1]] = self.register[self.ram[self.pc+2]]
 
     def alu(self, op, reg_a=None, reg_b=None):
         """ALU operations."""
