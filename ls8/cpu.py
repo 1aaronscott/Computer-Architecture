@@ -36,7 +36,7 @@ class CPU:
         # self.R6 = [0]*8  # reserved as the interrupt status (IS)
         # self.R7 = [0]*8  # reserved as the stack pointer (SP)
         self.ram = [0]*256  # available system ram
-        self.fl = [0]*8  # Flags
+        self.fl = 0  # Flag register
         # Program Counter, address of the currently executing instruction
         self.pc = 0
         self.stack_pointer = 7
@@ -192,7 +192,12 @@ class CPU:
         elif op == "DEC":
             self.register[reg_a] -= 1
         elif op == "CMP":
-            pass
+            if self.register[reg_a] < self.register[reg_b]:
+                self.fl = 0b00000100
+            elif self.register[reg_a] > self.register[reg_b]:
+                self.fl = 0b00000010
+            else:
+                self.fl = 0b00000001
         elif op == "AND":
             self.register[reg_a] &= self.register[reg_b]
         elif op == "NOT":
@@ -253,7 +258,8 @@ class CPU:
     def cmp(self):
         '''CMP registerA registerB
         Compare the values in two registers. '''
-        pass
+        self.alu("CMP", self.ram[self.pc+1], self.ram[self.pc+2])
+        self.pc += 3
 
     def ls8and(self):
         ''' AND registerA registerB
