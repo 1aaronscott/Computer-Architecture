@@ -13,7 +13,6 @@ class CPU:
                "POP": 0b01000110,    # 70
                "ADD": 0b10100000,  # 160
                "SUB": 0b10100001,  # 161
-               "MUL": 0b10100010,  # 162
                "DIV": 0b10100011,  # 163
                "MOD": 0b10100100,  # 164
                "INC": 0b01100101,  # 101
@@ -21,7 +20,7 @@ class CPU:
                "CMP": 0b10100111,  # 167
                "AND": 0b10101000,  # 168
                "NOT": 0b01101001,  # 105
-               "OR ": 0b10101010,  # 170
+               "OR": 0b10101010,  # 170
                "XOR": 0b10101011,  # 171
                "SHL": 0b10101100,  # 172
                "SHR": 0b10101101, }  # 173
@@ -40,13 +39,28 @@ class CPU:
         self.fl = [0]*8  # Flags
         # Program Counter, address of the currently executing instruction
         self.pc = 0
+        self.stack_pointer = 7
         self.register = [0, 0, 0, 0, 0, 0, 0, 0xf4]  # 8-bit register
         self.branch_table = {self.opcodes["HLT"]: self.hlt,
                              self.opcodes["LDI"]: self.ldi,
                              self.opcodes["PRN"]: self.prn,
-                             self.opcodes["MUL"]: self.mul, }
-        # self.opcodes["POP"]: self.pop,
-        # self.opcodes["PUSH"]: self.push}
+                             self.opcodes["MUL"]: self.mul,
+                             self.opcodes["POP"]: self.pop,
+                             self.opcodes["PUSH"]: self.push,
+                             self.opcodes["ADD"]: self.add,
+                             self.opcodes["SUB"]: self.sub,
+                             self.opcodes["DIV"]: self.div,
+                             self.opcodes["MOD"]: self.mod,
+                             self.opcodes["INC"]: self.inc,
+                             self.opcodes["DEC"]: self.dec,
+                             self.opcodes["CMP"]: self.cmp,
+                             self.opcodes["AND"]: self.ls8and,
+                             self.opcodes["NOT"]: self.ls8not,
+                             self.opcodes["OR"]: self.ls8or,
+                             self.opcodes["XOR"]: self.xor,
+                             self.opcodes["SHL"]: self.shl,
+                             self.opcodes["SHR"]: self.shr, }
+
         self.running = True
 
     def load(self, filename):
@@ -71,7 +85,6 @@ class CPU:
         #     address += 1
         address = 0
         try:
-            #            filename = sys.argv[1]
             with open(filename) as f:
                 for line in f:
                     # split lines into opcodes and other cruft
@@ -101,15 +114,6 @@ class CPU:
         #         except ValueError:
         #             continue
         #         self.ram[address] = v
-
-    def alu(self, op, reg_a, reg_b):
-        """ALU operations."""
-
-        if op == "ADD":
-            self.register[reg_a] += self.register[reg_b]
-        # elif op == "SUB": etc
-        else:
-            raise Exception("Unsupported ALU operation")
 
     def trace(self):
         """
@@ -170,12 +174,136 @@ class CPU:
 #        self.pc += (self.ram[self.pc] & 0b11000000 >> 6) + 1
         self.pc += 2
 
+    def alu(self, op, reg_a=None, reg_b=None):
+        """ALU operations."""
+
+        if op == "ADD":
+            self.register[reg_a] += self.register[reg_b]
+        elif op == "SUB":
+            self.register[reg_a] -= self.register[reg_b]
+        elif op == "MUL":
+            self.register[reg_a] *= self.register[reg_b]
+        elif op == "DIV":
+            self.register[reg_a] /= self.register[reg_b]
+        elif op == "MOD":
+            self.register[reg_a] %= self.register[reg_b]
+        elif op == "INC":
+            self.register[reg_a] += 1
+        elif op == "DEC":
+            self.register[reg_a] -= 1
+        elif op == "CMP":
+            pass
+        elif op == "AND":
+            self.register[reg_a] &= self.register[reg_b]
+        elif op == "NOT":
+            self.register[reg_a] = ~self.register[reg_a]
+        elif op == "OR":
+            self.register[reg_a] |= self.register[reg_b]
+        elif op == "XOR":
+            self.register[reg_a] ^= self.register[reg_b]
+        elif op == "SHL":
+            self.register[reg_a] <<= self.register[reg_b]
+        elif op == "SHR":
+            self.register[reg_a] >>= self.register[reg_b]
+        else:
+            raise Exception("Unsupported ALU operation")
+
+    def add(self):
+        ''' ADD registerA registerB
+        Add the value in two registers and store the result in registerA. '''
+        self.alu("ADD", self.ram[self.pc+1], self.ram[self.pc+2])
+        self.pc += 3
+
+    def sub(self):
+        self.alu("SUB", self.ram[self.pc+1], self.ram[self.pc+2])
+        self.pc += 3
+
     def mul(self):
-        ''' multiply to register values '''
-        self.register[self.ram[self.pc+1]] = self.register[self.ram[self.pc+2]
-                                                           ]*self.register[self.ram[self.pc+1]]
+        ''' MUL registerA registerB
+        Multiply the values in two registers together and store the result in registerA. '''
+        #self.register[self.ram[self.pc+1]] = self.register[self.ram[self.pc+2]]*self.register[self.ram[self.pc+1]]
+        self.alu("MUL", self.ram[self.pc+1], self.ram[self.pc+2])
 #        self.pc += (self.ram[self.pc] & 0b11000000 >> 6) + 1
         self.pc += 3
+
+    def div(self):
+        ''' DIV registerA registerB
+        Divide the value in the first register by the value in the second, storing the result in registerA. '''
+        self.alu("DIV", self.ram[self.pc+1], self.ram[self.pc+2])
+        self.pc += 3
+
+    def mod(self):
+        ''' MOD registerA registerB
+        Divide the value in the first register by the value in the second, storing the remainder of the result in registerA. '''
+        self.alu("MOD", self.ram[self.pc+1], self.ram[self.pc+2])
+        self.pc += 3
+
+    def inc(self):
+        ''' INC register
+        Increment (add 1 to) the value in the given register. '''
+        self.alu("INC", self.ram[self.pc+1])
+        self.pc += 2
+
+    def dec(self):
+        '''DEC register
+        Decrement (subtract 1 from) the value in the given register. '''
+        self.alu("DEC", self.ram[self.pc+1])
+        self.pc += 2
+
+    def cmp(self):
+        '''CMP registerA registerB
+        Compare the values in two registers. '''
+        pass
+
+    def ls8and(self):
+        ''' AND registerA registerB
+        Bitwise-AND the values in registerA and registerB, then store the result in registerA. '''
+        self.alu("AND", self.ram[self.pc+1], self.ram[self.pc+2])
+        self.pc += 3
+
+    def ls8not(self):
+        ''' NOT register
+        Perform a bitwise-NOT on the value in a register, storing the result in the register. '''
+        self.alu("NOT", self.ram[self.pc+1])
+        self.pc += 2
+
+    def ls8or(self):
+        ''' OR registerA registerB
+        Perform a bitwise-OR between the values in registerA and registerB, storing the result in registerA. '''
+        self.alu("OR", self.ram[self.pc+1], self.ram[self.pc+2])
+        self.pc += 3
+
+    def xor(self):
+        '''XOR registerA registerB
+        Perform a bitwise-XOR between the values in registerA and registerB, storing the result in registerA. '''
+        self.alu("XOR", self.ram[self.pc+1], self.ram[self.pc+2])
+        self.pc += 3
+
+    def shl(self):
+        ''' Shift the value in registerA left by the number of bits specified in registerB, filling the low bits with 0. '''
+        self.alu("SHL", self.ram[self.pc+1], self.ram[self.pc+2])
+        self.pc += 3
+
+    def shr(self):
+        ''' Shift the value in registerA right by the number of bits specified in registerB, filling the high bits with 0. '''
+        self.alu("SHR", self.ram[self.pc+1], self.ram[self.pc+2])
+        self.pc += 3
+
+    def push(self):
+        ''' push a value on to the stack '''
+        # The seventh register is dedicated to keeping track of the stack pointer
+        self.register[self.stack_pointer] -= 1
+        self.ram[self.register[self.stack_pointer]
+                 ] = self.register[self.ram[self.pc + 1]]
+        self.pc += 2
+
+    def pop(self):
+        ''' pop a value from the stack '''
+        # The seventh register is dedicated to keeping track of the stack pointer
+        self.register[self.ram[self.pc + 1]
+                      ] = self.ram[self.register[self.stack_pointer]]
+        self.register[self.stack_pointer] += 1
+        self.pc += 2
 
     def call_function(self, function):
         ''' branch table call functionality '''
