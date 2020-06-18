@@ -176,7 +176,7 @@ class CPU:
     def jge(self):
         ''' JGE register
         If greater-than flag or equal flag is set (true), jump to the address stored in the given register.'''
-        if self.fl == 0b00000010 of self.fl == 0b00000001:
+        if self.fl == 0b00000010 or self.fl == 0b00000001:
             self.jmp()
         else:
             self.pc += 2  # move past current opcode and operand
