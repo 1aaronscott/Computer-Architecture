@@ -95,11 +95,26 @@ class CPU:
     def call(self):
         ''' CALL register
         Calls a subroutine (function) at the address stored in the register. '''
-        pass
+        # set the return address
+        return_addr = self.pc + 2
+        # push in on the stack
+        self.register[self.stack_pointer] -= 1
+        top_of_stack = self.register[self.stack_pointer]
+        self.ram[top_of_stack] = return_addr
+
+        # set the pc to the subroutine address
+        reg_num = self.ram[self.pc+1]
+        subroutine_addr = self.register[reg_num]
+        self.pc = subroutine_addr
 
     def ret(self):
         ''' Return from subroutine. '''
-        pass
+        # pop the return address off the stack
+        top_of_stack = self.register[self.stack_pointer]
+        return_addr = self.ram[top_of_stack]
+        self.register[self.stack_pointer] += 1
+        # store it in the pc
+        self.pc = return_addr
 
     def ls8int(self):
         '''INT register
@@ -309,6 +324,7 @@ class CPU:
         elif op == "DEC":
             self.register[reg_a] -= 1
         elif op == "CMP":
+            # FL bits: 00000LGE
             if self.register[reg_a] < self.register[reg_b]:
                 self.fl = 0b00000100
             elif self.register[reg_a] > self.register[reg_b]:
