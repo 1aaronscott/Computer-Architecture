@@ -152,22 +152,34 @@ class CPU:
     def jgt(self):
         ''' JGT register
         If greater-than flag is set (true), jump to the address stored in the given register. '''
-        pass
+        if self.fl == 0b00000010:
+            self.jmp()
+        else:
+            self.pc += 2  # move past current opcode and operand
 
     def jlt(self):
         ''' JLT register
         If less-than flag is set (true), jump to the address stored in the given register. '''
-        pass
+        if self.fl == 0b00000100:
+            self.jmp()
+        else:
+            self.pc += 2  # move past current opcode and operand
 
     def jle(self):
         '''JLE register
         If less-than flag or equal flag is set (true), jump to the address stored in the given register. '''
-        pass
+        if self.fl == 0b00000100 or self.fl == 0b00000001:
+            self.jmp()
+        else:
+            self.pc += 2  # move past current opcode and operand
 
     def jge(self):
         ''' JGE register
         If greater-than flag or equal flag is set (true), jump to the address stored in the given register.'''
-        pass
+        if self.fl == 0b00000010 of self.fl == 0b00000001:
+            self.jmp()
+        else:
+            self.pc += 2  # move past current opcode and operand
 
     def load(self, filename):
         """Load a program into memory."""
