@@ -128,17 +128,26 @@ class CPU:
     def jmp(self):
         ''' JMP register
         Jump to the address stored in the given register. '''
-        pass
+        # next register holds the address we want to jump to
+        register_with_addr = self.ram[self.pc+1]
+        # set the pc to point to this address
+        self.pc = self.register[register_with_addr]
 
     def jeq(self):
         ''' JEQ register
         If equal flag is set (true), jump to the address stored in the given register. '''
-        pass
+        if self.fl == 0b00000001:
+            self.jmp()
+        else:
+            self.pc += 2  # move past current opcode and operand
 
     def jne(self):
         ''' JNE register
         If E flag is clear (false, 0), jump to the address stored in the given register. '''
-        pass
+        if self.fl != 0b00000001:
+            self.jmp()
+        else:
+            self.pc += 2  # move past current opcode and operand
 
     def jgt(self):
         ''' JGT register
