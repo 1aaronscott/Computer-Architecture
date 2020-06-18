@@ -24,7 +24,21 @@ class CPU:
                "XOR": 0b10101011,  # 171
                "SHL": 0b10101100,  # 172
                "SHR": 0b10101101,  # 173
-               "PRA": 0b01001000, }  # 72
+               "PRA": 0b01001000,   # 72
+               "LD": 0b10000011,  # 131
+               "ST": 0b10000100,  # 132
+               "NOP": 0b00000000,  # 00
+               "CALL": 0b01010000,  # 80
+               "RET": 0b00010001,  # 17
+               "INT": 0b01010010,  # 82
+               "IRET": 0b00010011,  # 19
+               "JMP": 0b01010100,  # 84
+               "JEQ": 0b01010101,  # 85
+               "JNE": 0b01010110,  # 86
+               "JGT": 0b01010111,  # 87
+               "JLT": 0b01011000,  # 88
+               "JLE": 0b01011001,  # 89
+               "JGE": 0b01011010}  # 90
 
     def __init__(self):
         """Construct a new CPU."""
@@ -41,6 +55,7 @@ class CPU:
         # Program Counter, address of the currently executing instruction
         self.pc = 0
         self.stack_pointer = 7
+        self.running = True
         self.register = [0, 0, 0, 0, 0, 0, 0, 0xf4]  # 8-bit register
         self.branch_table = {self.opcodes["HLT"]: self.hlt,
                              self.opcodes["LDI"]: self.ldi,
@@ -61,9 +76,74 @@ class CPU:
                              self.opcodes["XOR"]: self.xor,
                              self.opcodes["SHL"]: self.shl,
                              self.opcodes["SHR"]: self.shr,
-                             self.opcodes["PRA"]: self.pra, }
+                             self.opcodes["PRA"]: self.pra,
+                             self.opcodes["LD"]: self.ld,
+                             self.opcodes["ST"]: self.st,
+                             self.opcodes["NOP"]: self.nop,
+                             self.opcodes["CALL"]: self.call,
+                             self.opcodes["RET"]: self.ret,
+                             self.opcodes["INT"]: self.ls8int,
+                             self.opcodes["IRET"]: self.iret,
+                             self.opcodes["JMP"]: self.jmp,
+                             self.opcodes["JEQ"]: self.jeq,
+                             self.opcodes["JNE"]: self.jne,
+                             self.opcodes["JGT"]: self.jgt,
+                             self.opcodes["JLT"]: self.jlt,
+                             self.opcodes["JLE"]: self.jle,
+                             self.opcodes["JGT"]: self.jgt}
 
-        self.running = True
+    def call(self):
+        ''' CALL register
+        Calls a subroutine (function) at the address stored in the register. '''
+        pass
+
+    def ret(self):
+        ''' Return from subroutine. '''
+        pass
+
+    def ls8int(self):
+        '''INT register
+        Issue the interrupt number stored in the given register. '''
+        pass
+
+    def iret(self):
+        ''' Return from an interrupt handler. '''
+        pass
+
+    def jmp(self):
+        ''' JMP register
+        Jump to the address stored in the given register. '''
+        pass
+
+    def jeq(self):
+        ''' JEQ register
+        If equal flag is set (true), jump to the address stored in the given register. '''
+        pass
+
+    def jne(self):
+        ''' JNE register
+        If E flag is clear (false, 0), jump to the address stored in the given register. '''
+        pass
+
+    def jgt(self):
+        ''' JGT register
+        If greater-than flag is set (true), jump to the address stored in the given register. '''
+        pass
+
+    def jlt(self):
+        ''' JLT register
+        If less-than flag is set (true), jump to the address stored in the given register. '''
+        pass
+
+    def jle(self):
+        '''JLE register
+        If less-than flag or equal flag is set (true), jump to the address stored in the given register. '''
+        pass
+
+    def jge(self):
+        ''' JGE register
+        If greater-than flag or equal flag is set (true), jump to the address stored in the given register.'''
+        pass
 
     def load(self, filename):
         """Load a program into memory."""
@@ -155,6 +235,10 @@ class CPU:
         except IndexError:
             raise ValueError(f"The address {MAR} isn't valid.")
 
+    def nop(self):
+        ''' No operation. Do nothing for this instruction. '''
+        self.pc += 1
+
     def hlt(self):
         ''' system halt '''
         self.running = False
@@ -170,6 +254,32 @@ class CPU:
 #        self.pc += (self.ram[self.pc] & 0b11000000 >> 6) + 1
         self.pc += 3
 
+    def ld(self):
+        '''LD registerA registerB
+        Loads registerA with the value at the memory address stored in registerB. '''
+        self.register[self.ram[self.pc+1]
+                      ] = self.ram_read(self.register[self.ram[self.pc+2]])
+
+    def st(self):
+        ''' ST registerA registerB
+        Store value in registerB in the address stored in registerA. '''
+        self.ram_write(self.register[self.ram[self.pc+1]],
+                       self.register[self.ram[self.pc+2]])
+
+    def push(self):
+        ''' push a value on to the stack '''
+        self.register[self.stack_pointer] -= 1
+        self.ram[self.register[self.stack_pointer]
+                 ] = self.register[self.ram[self.pc + 1]]
+        self.pc += 2
+
+    def pop(self):
+        ''' pop a value from the stack '''
+        self.register[self.ram[self.pc + 1]
+                      ] = self.ram[self.register[self.stack_pointer]]
+        self.register[self.stack_pointer] += 1
+        self.pc += 2
+
     def prn(self):
         ''' print value of a register '''
         print(self.register[self.ram[self.pc+1]])
@@ -180,16 +290,6 @@ class CPU:
         ''' print ascii value of a register '''
         print(ascii(self.register[self.ram[self.pc+1]]))
         self.pc += 2
-
-    def ld(self):
-        '''LD registerA registerB
-        Loads registerA with the value at the memory address stored in registerB. '''
-        self.register[self.ram[self.pc+1]] = self.register[self.ram[self.pc+2]]
-
-    def st(self):
-        ''' ST registerA registerB
-        Store value in registerB in the address stored in registerA. '''
-        self.register[self.ram[self.pc+1]] = self.register[self.ram[self.pc+2]]
 
     def alu(self, op, reg_a=None, reg_b=None):
         """ALU operations."""
@@ -311,22 +411,6 @@ class CPU:
         ''' Shift the value in registerA right by the number of bits specified in registerB, filling the high bits with 0. '''
         self.alu("SHR", self.ram[self.pc+1], self.ram[self.pc+2])
         self.pc += 3
-
-    def push(self):
-        ''' push a value on to the stack '''
-        # The seventh register is dedicated to keeping track of the stack pointer
-        self.register[self.stack_pointer] -= 1
-        self.ram[self.register[self.stack_pointer]
-                 ] = self.register[self.ram[self.pc + 1]]
-        self.pc += 2
-
-    def pop(self):
-        ''' pop a value from the stack '''
-        # The seventh register is dedicated to keeping track of the stack pointer
-        self.register[self.ram[self.pc + 1]
-                      ] = self.ram[self.register[self.stack_pointer]]
-        self.register[self.stack_pointer] += 1
-        self.pc += 2
 
     def call_function(self, function):
         ''' branch table call functionality '''
